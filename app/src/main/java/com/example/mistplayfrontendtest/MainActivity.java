@@ -10,8 +10,14 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -20,9 +26,12 @@ public class MainActivity extends AppCompatActivity {
     TextView seacrhText;
     SearchView seacrhBar;
     ListView listView;
-    String[] favoriteTVShows = {"Pushing Daisies", "Better Off Ted",
-            "Twin Peaks", "Freaks and Geeks", "Orphan Black", "Walking Dead",
-            "Breaking Bad", "The 400", "Alphas", "Life on Mars"};
+    String[] games = {"Underwater Survival Sim – 2 ", "Close Up Character - Pic Quiz!",
+            "Go Kart Go! Ultra!", "Sudoku 10'000 Free"};
+
+    ArrayList<String> list;
+
+    String[] stockArr = new String[list.size()];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,11 +42,15 @@ public class MainActivity extends AppCompatActivity {
 
 
 //populates search
-        final ListAdapter listAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,favoriteTVShows);
+        //String[] stockArr = getJSonData();
+
+        final ListAdapter listAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,games);
+
 
         listView=(ListView)findViewById(R.id.listofItems);
 
         listView.setAdapter(listAdapter);
+
 
         seacrhBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -57,14 +70,14 @@ public class MainActivity extends AppCompatActivity {
 //populates array
     public String[] updateList()
     {
-        String [] returnArr=new String[favoriteTVShows.length];
+        String [] returnArr=new String[games.length];
         String searchstring=seacrhBar.toString();
         String text = searchstring.toLowerCase(Locale.getDefault());
-            for (int i=0;i<favoriteTVShows.length;i++)
+            for (int i=0;i<games.length;i++)
             {
                 int j=0;
-                if(favoriteTVShows[i].toLowerCase().startsWith(searchstring)) {
-                    returnArr[j] =favoriteTVShows[i];
+                if(games[i].toLowerCase().startsWith(searchstring)) {
+                    returnArr[j] =games[i];
                     j++;
                 }
             }
@@ -72,15 +85,52 @@ public class MainActivity extends AppCompatActivity {
     }
 
 //opens json file
-    public void getJSON()
-    {
+
+    private String[] getJSonData(){
+
+        JSONArray jsonArray=null;
+
         try {
-            InputStream is = getAssets().open("games.json");
-        }
-        catch (Exception e)
-        {
+
+            InputStream is = getResources().getAssets().open("games.json");
+
+            int size = is.available();
+
+            byte[] data = new byte[size];
+
+            is.read(data);
+
+            is.close();
+
+            String json = new String(data, "UTF-8");
+
+            jsonArray=new JSONArray(json);
+
+
+            list = new ArrayList<String>();
+            for(int i = 0; i < jsonArray.length(); i++){
+                list.add(jsonArray.getJSONObject(i).getString("title"));
+            }
+
+
+
+
+        }catch (IOException e){
+
             e.printStackTrace();
+
+        }catch (JSONException je){
+
+            je.printStackTrace();
+
         }
 
+        stockArr = list.toArray(stockArr);
+        //converted from json to arraylist to stringarr
+
+        return stockArr;
+
+
     }
+
 }
